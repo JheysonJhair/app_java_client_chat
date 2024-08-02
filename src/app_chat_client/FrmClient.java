@@ -23,6 +23,7 @@ public class FrmClient extends JFrame {
     private Map<String, byte[]> receivedFiles = new HashMap<>();
     private Map<String, String> receivedFileNames = new HashMap<>();
     private Map<String, StringBuilder> messageHistory = new HashMap<>();
+    private Map<String, JButton> contactButtons = new HashMap<>();
 
     /**
      * Launch the application.
@@ -196,6 +197,7 @@ public class FrmClient extends JFrame {
                         out.println(currentUserName + "@" + userName + ": " + message);
                         appendMessage(userName, "Yo: " + message + "\n");
                         textField.setText("");
+                        Toolkit.getDefaultToolkit().beep(); // Reproducir sonido de notificación
                     }
                 }
             }
@@ -228,6 +230,7 @@ public class FrmClient extends JFrame {
         tabbedPane.setTabComponentAt(tabbedPane.indexOfComponent(panelChat), tabHeader);
     }
 
+
     // Método para añadir mensaje al historial y al JTextArea
     private void appendMessage(String userName, String message) {
         if (!messageHistory.containsKey(userName)) {
@@ -238,15 +241,17 @@ public class FrmClient extends JFrame {
         if (userTextAreas.containsKey(userName)) {
             userTextAreas.get(userName).append(message);
         }
+
+        // Cambiar el color del botón de contacto si la pestaña no está seleccionada
+        int selectedIndex = tabbedPane.getSelectedIndex();
+        String selectedTabTitle = selectedIndex != -1 ? tabbedPane.getTitleAt(selectedIndex) : "";
+        if (!selectedTabTitle.equals(userName) && contactButtons.containsKey(userName)) {
+            contactButtons.get(userName).setBackground(Color.RED);
+        }
     }
 
 
-
-
-
-
-
- // Método para crear un botón de contacto
+    // Método para crear un botón de contacto
     private JButton createContactButton(String name, int tabIndex) {
         JButton button = new JButton(name);
         button.setFont(new Font("Tahoma", Font.PLAIN, 16));
@@ -261,10 +266,13 @@ public class FrmClient extends JFrame {
                     index = getTabIndexByName(name);
                 }
                 tabbedPane.setSelectedIndex(index);
+                // Restaurar el color del botón al seleccionarlo
+                button.setBackground(Color.decode("#FFC608"));
             }
         });
         return button;
     }
+
 
     // Método para obtener el índice de la pestaña por nombre
     private int getTabIndexByName(String name) {
@@ -277,7 +285,7 @@ public class FrmClient extends JFrame {
     }
 
 
- // Método para conectar al servidor
+    // Método para conectar al servidor
     private void connectToServer(String userName) {
         try {
             socket = new Socket("localhost", 12346);
@@ -338,12 +346,14 @@ public class FrmClient extends JFrame {
             if (!userName.equals(currentUserName) && !userTextAreas.containsKey(userName)) {
                 createChatTab(userName);
                 JButton newButton = createContactButton(userName, tabbedPane.getTabCount() - 1);
+                contactButtons.put(userName, newButton); // Almacenar el botón de contacto
                 buttonPanel.add(newButton);
             }
         }
         buttonPanel.revalidate();
         buttonPanel.repaint();
     }
+
     
     // Método para manejar la disponibilidad de archivos
     private void handleFileAvailable(String message) {
@@ -385,5 +395,4 @@ public class FrmClient extends JFrame {
             }
         }
     }
-
 }
