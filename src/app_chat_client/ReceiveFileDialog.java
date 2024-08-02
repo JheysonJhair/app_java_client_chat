@@ -44,6 +44,7 @@ public class ReceiveFileDialog extends JDialog {
 
         // Barra de progreso
         progressBar = new JProgressBar();
+        progressBar.setForeground(Color.ORANGE);
         progressBar.setStringPainted(true);
         progressBar.setVisible(false);
         topPanel.add(progressBar, BorderLayout.WEST);
@@ -131,10 +132,32 @@ public class ReceiveFileDialog extends JDialog {
                 String key = userName + "@" + currentUserName + ":" + selectedFile;
                 byte[] fileContent = receivedFiles.get(key);
                 if (fileContent != null && fileContent.length > 0) {
+                    progressBar.setVisible(true);
+                    progressBar.setValue(0);
+                    progressBar.setStringPainted(true);
+                    progressBar.setForeground(Color.decode("#EB891B")); 
+                    progressBar.setBorder(BorderFactory.createEmptyBorder());
+                    
                     new Thread(() -> {
                         try (FileOutputStream fos = new FileOutputStream(saveFile)) {
-                            fos.write(fileContent);
-                            SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(ReceiveFileDialog.this, "Archivo guardado exitosamente."));
+                            int totalBytes = fileContent.length;
+                            int bufferSize = 1024; 
+                            int bytesWritten = 0;
+                            for (int i = 0; i < totalBytes; i += bufferSize) {
+                                int bytesToWrite = Math.min(bufferSize, totalBytes - i);
+                                fos.write(fileContent, i, bytesToWrite);
+                                bytesWritten += bytesToWrite;
+
+                                final int progress = (int) ((double) bytesWritten / totalBytes * 100);
+                                SwingUtilities.invokeLater(() -> progressBar.setValue(progress));
+                            }
+
+                            SwingUtilities.invokeLater(() -> {
+                                progressBar.setValue(100);
+                                JOptionPane.showMessageDialog(ReceiveFileDialog.this, "Transferencia finalizada correctamente.");
+                                progressBar.setVisible(false);
+                               
+                            });
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }

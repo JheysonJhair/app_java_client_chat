@@ -88,7 +88,7 @@ public class ShareFileDialog extends JDialog {
                 // Codifica el archivo en base64 y envía el mensaje al servidor
                 String encodedFile = Base64.getEncoder().encodeToString(fileBytes);
                 out.println("FILE:" + currentUserName + "@" + userName + ":" + selectedFile.getName() + ":" + encodedFile);
-                textArea.append("SHARE: Archivo compartido: " + selectedFile.getName() + "\n");
+                textArea.append(selectedFile.getName() + "\n");
                 System.out.println("SHARE: Archivo enviado: " + selectedFile.getName() + ", Tamaño: " + fileBytes.length);
             }
         } catch (IOException ex) {
