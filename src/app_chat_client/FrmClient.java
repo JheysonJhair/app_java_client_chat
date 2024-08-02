@@ -22,6 +22,7 @@ public class FrmClient extends JFrame {
     private Socket socket;
     private Map<String, byte[]> receivedFiles = new HashMap<>();
     private Map<String, String> receivedFileNames = new HashMap<>();
+    private Map<String, StringBuilder> messageHistory = new HashMap<>();
 
     /**
      * Launch the application.
@@ -124,7 +125,7 @@ public class FrmClient extends JFrame {
         connectToServer(currentUserName);
     }
 
-    // Método para crear una pestaña de chat
+ // Método para crear una pestaña de chat
     private void createChatTab(String userName) {
         JPanel panelChat = new JPanel();
         panelChat.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, Color.decode("#D5D9DF")));
@@ -137,44 +138,47 @@ public class FrmClient extends JFrame {
         textArea.setEditable(false);
         panelChat.add(new JScrollPane(textArea), BorderLayout.CENTER);
 
-        // Crear panel de botones 
+        // Restaurar historial de mensajes si existe
+        if (messageHistory.containsKey(userName)) {
+            textArea.setText(messageHistory.get(userName).toString());
+        }
+
+        // Crear panel de botones
         JPanel panelButtons = new JPanel();
         panelButtons.setBackground(Color.decode("#D5D9DF"));
         panelButtons.setLayout(new BorderLayout());
         panelButtons.setBorder(BorderFactory.createMatteBorder(0, 0, 10, 0, Color.decode("#D5D9DF")));
         panelChat.add(panelButtons, BorderLayout.NORTH);
 
-        // Crear contenedor de botones 
+        // Crear contenedor de botones
         JPanel buttonContainer = new JPanel();
         buttonContainer.setBackground(Color.decode("#D5D9DF"));
         buttonContainer.setLayout(new BorderLayout(20, 0));
         panelButtons.add(buttonContainer, BorderLayout.EAST);
 
-        // ..........................Boton recibir
+        // Botón recibir
         JButton btnReceiveFile = new JButton("Recibir Archivo");
         btnReceiveFile.setPreferredSize(new Dimension(140, 30));
         btnReceiveFile.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Manejar la recepción de archivos
                 ReceiveFileDialog receiveFileDialog = new ReceiveFileDialog(FrmClient.this, receivedFiles, receivedFileNames, currentUserName, userName, out);
                 receiveFileDialog.setVisible(true);
             }
         });
         buttonContainer.add(btnReceiveFile, BorderLayout.WEST);
-        
-        // ..........................Boton enviar
+
+        // Botón enviar
         JButton btnShareFile = new JButton("Compartir Archivo");
         btnShareFile.setPreferredSize(new Dimension(140, 30));
         btnShareFile.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Manejar la selección y envío de archivos
                 ShareFileDialog shareFileDialog = new ShareFileDialog(FrmClient.this, out, currentUserName, userName);
                 shareFileDialog.setVisible(true);
             }
         });
         buttonContainer.add(btnShareFile, BorderLayout.EAST);
 
-        // Crear panel de envío de mensajes 
+        // Crear panel de envío de mensajes
         JPanel panelSend = new JPanel();
         panelChat.add(panelSend, BorderLayout.SOUTH);
         panelSend.setLayout(new BorderLayout(0, 0));
@@ -190,7 +194,7 @@ public class FrmClient extends JFrame {
                     String message = textField.getText();
                     if (!message.isEmpty()) {
                         out.println(currentUserName + "@" + userName + ": " + message);
-                        userTextAreas.get(userName).append("Yo: " + message + "\n");
+                        appendMessage(userName, "Yo: " + message + "\n");
                         textField.setText("");
                     }
                 }
@@ -198,9 +202,51 @@ public class FrmClient extends JFrame {
         });
 
         userTextAreas.put(userName, textArea);
+
+        // Crear el encabezado de la pestaña con botón de cierre
+        JPanel tabHeader = new JPanel(new BorderLayout());
+        tabHeader.setOpaque(false);
+        JLabel tabTitle = new JLabel(userName);
+        JButton closeButton = new JButton("✖");
+        closeButton.setMargin(new Insets(0, 0, 0, 0));
+        closeButton.setBorder(BorderFactory.createEmptyBorder());
+        closeButton.setFocusPainted(false);
+        closeButton.setContentAreaFilled(false);
+        closeButton.setPreferredSize(new Dimension(30, 30)); 
+        closeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int index = tabbedPane.indexOfTabComponent(tabHeader);
+                if (index != -1) {
+                    tabbedPane.remove(index);
+                    userTextAreas.remove(userName);
+                }
+            }
+        });
+        tabHeader.add(tabTitle, BorderLayout.CENTER);
+        tabHeader.add(closeButton, BorderLayout.EAST);
+
+        tabbedPane.setTabComponentAt(tabbedPane.indexOfComponent(panelChat), tabHeader);
     }
 
-    // Método para crear un botón de contacto
+    // Método para añadir mensaje al historial y al JTextArea
+    private void appendMessage(String userName, String message) {
+        if (!messageHistory.containsKey(userName)) {
+            messageHistory.put(userName, new StringBuilder());
+        }
+        messageHistory.get(userName).append(message);
+
+        if (userTextAreas.containsKey(userName)) {
+            userTextAreas.get(userName).append(message);
+        }
+    }
+
+
+
+
+
+
+
+ // Método para crear un botón de contacto
     private JButton createContactButton(String name, int tabIndex) {
         JButton button = new JButton(name);
         button.setFont(new Font("Tahoma", Font.PLAIN, 16));
@@ -209,13 +255,29 @@ public class FrmClient extends JFrame {
         button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                tabbedPane.setSelectedIndex(tabIndex);
+                int index = getTabIndexByName(name);
+                if (index == -1) {
+                    createChatTab(name);
+                    index = getTabIndexByName(name);
+                }
+                tabbedPane.setSelectedIndex(index);
             }
         });
         return button;
     }
 
-    // Método para conectar al servidor
+    // Método para obtener el índice de la pestaña por nombre
+    private int getTabIndexByName(String name) {
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            if (tabbedPane.getTitleAt(i).equals(name)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
+ // Método para conectar al servidor
     private void connectToServer(String userName) {
         try {
             socket = new Socket("localhost", 12346);
@@ -246,7 +308,11 @@ public class FrmClient extends JFrame {
                                         String text = parts[1].trim();
                                         if (receiver.equals(currentUserName)) {
                                             if (userTextAreas.containsKey(sender)) {
-                                                userTextAreas.get(sender).append(sender + ": " + text + "\n");
+                                                appendMessage(sender, sender + ": " + text + "\n");
+                                            } else {
+                                                // Guardar el mensaje en el historial aunque la pestaña no esté abierta
+                                                appendMessage(sender, sender + ": " + text + "\n");
+                                                createChatTab(sender); // Crear la pestaña si no está abierta
                                             }
                                         }
                                     }
@@ -262,6 +328,7 @@ public class FrmClient extends JFrame {
             e.printStackTrace();
         }
     }
+
 
     // Método para actualizar la lista de usuarios
     private void updateUsersList(String userListMessage) {
