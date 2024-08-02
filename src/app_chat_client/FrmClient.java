@@ -43,31 +43,27 @@ public class FrmClient extends JFrame {
      * Create the frame.
      */
     public FrmClient() {
-        // Solicitar el nombre de usuario al iniciar la aplicación
+        // Solicitar el nombre de usuario 
         currentUserName = JOptionPane.showInputDialog(this, "Ingresa tu nombre de usuario:");
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 652, 424);
 
-        // Crear barra de menú
+        // Barra de menu
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
-
-        // Añadir menú Archivo
         JMenu mnNewMenu = new JMenu("Archivo");
         menuBar.add(mnNewMenu);
-
-        // Añadir ítem Salir al menú Archivo
         JMenuItem mntmNewMenuItem = new JMenuItem("Salir");
         mnNewMenu.add(mntmNewMenuItem);
 
-        // Crear panel principal con un diseño BorderLayout y color de fondo
+        // Panel principal
         contentPane = new JPanel();
         contentPane.setLayout(new BorderLayout(0, 0));
         contentPane.setBackground(Color.decode("#D5D9DF"));
         setContentPane(contentPane);
 
-        // Panel izquierda
+        //------------------------------------------------------------------------- Panel izquierda
         JPanel leftPanel = new JPanel();
         leftPanel.setPreferredSize(new Dimension(200, 0));
         leftPanel.setBackground(Color.decode("#365c7e"));
@@ -78,14 +74,14 @@ public class FrmClient extends JFrame {
         contentPane.add(leftPanel, BorderLayout.WEST);
         leftPanel.setLayout(new BorderLayout(0, 0));
 
-        // Panel contenedor con padding dentro del panel izquierdo
+        // Panel contenedor
         JPanel containerPanel = new JPanel();
         containerPanel.setLayout(new BorderLayout(0, 0));
         containerPanel.setBackground(Color.decode("#B8BCC4"));
         containerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         leftPanel.add(containerPanel, BorderLayout.CENTER);
 
-        // Crear etiqueta de nombre de usuario
+        // Label nombre de usuario
         JLabel lblUsername = new JLabel(" " + currentUserName);
         lblUsername.setFont(new Font("Tahoma", Font.PLAIN, 16));
         lblUsername.setForeground(Color.BLACK);
@@ -96,35 +92,35 @@ public class FrmClient extends JFrame {
         lblUsername.setPreferredSize(new Dimension(lblUsername.getPreferredSize().width, 30));
         containerPanel.add(lblUsername, BorderLayout.NORTH);
 
-        // Panel para los botones dentro del contenedor
+        // Panel para los botones 
         buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
         containerPanel.add(buttonPanel, BorderLayout.CENTER);
 
-        // Panel derecho que contendrá el topPanel y el tabbedPane
+        //------------------------------------------------------------------------- Panel derecho
         JPanel rightPanel = new JPanel();
         rightPanel.setBorder(BorderFactory.createMatteBorder(18, 7, 18, 7, Color.decode("#365c7e")));
         rightPanel.setLayout(new BorderLayout(0, 0));
         contentPane.add(rightPanel, BorderLayout.CENTER);
 
-        // Panel superior para el nombre de usuario
+        // Panel contenedor de nombre de usuario
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BorderLayout());
         topPanel.setBackground(Color.decode("#D5D9DF"));
         topPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         rightPanel.add(topPanel, BorderLayout.NORTH);
 
-        // Crear etiqueta de nombre de usuario en la parte superior del panel derecho
+        // Label nombre de usuario
         JLabel lblUserNameTop = new JLabel("Nombre de Usuario: " + currentUserName, JLabel.CENTER);
         lblUserNameTop.setFont(new Font("Tahoma", Font.PLAIN, 16));
         lblUserNameTop.setForeground(Color.BLACK);
         topPanel.add(lblUserNameTop, BorderLayout.CENTER);
 
-        // Crear tabbedPane para las pestañas de chat
+        // TabbedPane para las pestañas de chat
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         rightPanel.add(tabbedPane, BorderLayout.CENTER);
 
-        // Conectar al servidor
+        // ...............................Conectar al servidor
         connectToServer(currentUserName);
     }
 
@@ -141,20 +137,20 @@ public class FrmClient extends JFrame {
         textArea.setEditable(false);
         panelChat.add(new JScrollPane(textArea), BorderLayout.CENTER);
 
-        // Crear panel de botones en la parte superior del chat
+        // Crear panel de botones 
         JPanel panelButtons = new JPanel();
         panelButtons.setBackground(Color.decode("#D5D9DF"));
         panelButtons.setLayout(new BorderLayout());
         panelButtons.setBorder(BorderFactory.createMatteBorder(0, 0, 10, 0, Color.decode("#D5D9DF")));
         panelChat.add(panelButtons, BorderLayout.NORTH);
 
-        // Crear contenedor de botones dentro del panel de botones
+        // Crear contenedor de botones 
         JPanel buttonContainer = new JPanel();
         buttonContainer.setBackground(Color.decode("#D5D9DF"));
         buttonContainer.setLayout(new BorderLayout(20, 0));
         panelButtons.add(buttonContainer, BorderLayout.EAST);
 
-        // Crear botones de recibir y compartir archivo
+        // ..........................Boton recibir
         JButton btnReceiveFile = new JButton("Recibir Archivo");
         btnReceiveFile.setPreferredSize(new Dimension(140, 30));
         btnReceiveFile.addActionListener(new ActionListener() {
@@ -165,7 +161,8 @@ public class FrmClient extends JFrame {
             }
         });
         buttonContainer.add(btnReceiveFile, BorderLayout.WEST);
-
+        
+        // ..........................Boton enviar
         JButton btnShareFile = new JButton("Compartir Archivo");
         btnShareFile.setPreferredSize(new Dimension(140, 30));
         btnShareFile.addActionListener(new ActionListener() {
@@ -177,12 +174,12 @@ public class FrmClient extends JFrame {
         });
         buttonContainer.add(btnShareFile, BorderLayout.EAST);
 
-        // Crear panel de envío de mensajes en la parte inferior del chat
+        // Crear panel de envío de mensajes 
         JPanel panelSend = new JPanel();
         panelChat.add(panelSend, BorderLayout.SOUTH);
         panelSend.setLayout(new BorderLayout(0, 0));
 
-        // Crear campo de texto para escribir mensajes
+        // Campo de texto para escribir mensajes
         textField = new JTextField();
         textField.setFont(new Font("Monospaced", Font.PLAIN, 16));
         panelSend.add(textField, BorderLayout.CENTER);
@@ -233,7 +230,6 @@ public class FrmClient extends JFrame {
                     try {
                         String message;
                         while ((message = in.readLine()) != null) {
-                            System.out.println("Mensaje recibido del servidor: " + message); // Debugging
                             if (message.startsWith("USER_LIST")) {
                                 updateUsersList(message);
                             } else if (message.startsWith("FILE_AVAILABLE:")) {
@@ -281,7 +277,8 @@ public class FrmClient extends JFrame {
         buttonPanel.revalidate();
         buttonPanel.repaint();
     }
-
+    
+    // Método para manejar la disponibilidad de archivos
     private void handleFileAvailable(String message) {
         String[] parts = message.split(":", 2);
         if (parts.length == 2) {
@@ -294,7 +291,8 @@ public class FrmClient extends JFrame {
             }
         }
     }
-
+    
+    // Método para manejar la recepcion de archivos
     private void handleFileReception(String message) {
         String[] parts = message.split(":", 4);
         if (parts.length == 4) {

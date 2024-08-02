@@ -21,7 +21,7 @@ public class ShareFileDialog extends JDialog {
         setSize(400, 300);
         setLayout(new BorderLayout());
 
-        // Contenedor principal con padding
+        // Contenedor principal
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         mainPanel.setBackground(Color.decode("#D5D9DF"));
@@ -33,7 +33,7 @@ public class ShareFileDialog extends JDialog {
         JButton btnSelectFile = new JButton("Compartir Archivo");
         topPanel.add(btnSelectFile, BorderLayout.WEST);
 
-        // Label debajo del botón "Compartir Archivo"
+        // Label "Compartir Archivo"
         JLabel lblFiles = new JLabel("Archivos compartidos");
         lblFiles.setFont(new Font("Tahoma", Font.PLAIN, 14));
         lblFiles.setPreferredSize(new Dimension(lblFiles.getPreferredSize().width, 23));
@@ -57,6 +57,7 @@ public class ShareFileDialog extends JDialog {
         // Acción del botón "Compartir Archivo"
         btnSelectFile.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                // Abre un JFileChooser para seleccionar un archivo
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos", "*"));
                 int returnValue = fileChooser.showOpenDialog(ShareFileDialog.this);
@@ -77,22 +78,25 @@ public class ShareFileDialog extends JDialog {
         setLocationRelativeTo(parent);
     }
 
+    // Envia el archivo seleccionado al servidor
     private void sendFile(File selectedFile, String currentUserName, String userName, PrintWriter out) {
         try {
             byte[] fileBytes = readFileToByteArray(selectedFile);
             if (fileBytes == null || fileBytes.length == 0) {
                 System.out.println("El contenido del archivo que se intenta enviar es nulo o vacío.");
             } else {
+                // Codifica el archivo en base64 y envía el mensaje al servidor
                 String encodedFile = Base64.getEncoder().encodeToString(fileBytes);
                 out.println("FILE:" + currentUserName + "@" + userName + ":" + selectedFile.getName() + ":" + encodedFile);
-                textArea.append("Archivo compartido: " + selectedFile.getName() + "\n");
-                System.out.println("Archivo enviado: " + selectedFile.getName() + ", Tamaño: " + fileBytes.length);
+                textArea.append("SHARE: Archivo compartido: " + selectedFile.getName() + "\n");
+                System.out.println("SHARE: Archivo enviado: " + selectedFile.getName() + ", Tamaño: " + fileBytes.length);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
 
+    // Lee un archivo y lo convierte en un array de bytes
     private byte[] readFileToByteArray(File file) throws IOException {
         FileInputStream fis = null;
         byte[] byteArray = new byte[(int) file.length()];

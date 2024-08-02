@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
-import java.util.Base64;
 import java.util.Map;
 import java.util.Vector;
 
@@ -21,6 +20,7 @@ public class ReceiveFileDialog extends JDialog {
     private JList<String> fileList;
     private JProgressBar progressBar;
 
+    // Constructor del diálogo de recepción de archivos
     public ReceiveFileDialog(JFrame parent, Map<String, byte[]> receivedFiles, Map<String, String> receivedFileNames, String currentUserName, String userName, PrintWriter out) {
         super(parent, "Archivos Recibidos de " + userName, true);
         this.receivedFiles = receivedFiles;
@@ -30,7 +30,7 @@ public class ReceiveFileDialog extends JDialog {
         setSize(400, 300);
         getContentPane().setLayout(new BorderLayout());
 
-        // Contenedor principal con padding
+        // Contenedor principal
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         mainPanel.setBackground(Color.decode("#D5D9DF"));
@@ -45,10 +45,10 @@ public class ReceiveFileDialog extends JDialog {
         // Barra de progreso
         progressBar = new JProgressBar();
         progressBar.setStringPainted(true);
-        progressBar.setVisible(false); 
+        progressBar.setVisible(false);
         topPanel.add(progressBar, BorderLayout.WEST);
 
-        // Label debajo del botón "Actualizar Lista"
+        // Label "Archivos disponibles"
         JLabel lblFiles = new JLabel("Archivos disponibles");
         lblFiles.setFont(new Font("Tahoma", Font.PLAIN, 14));
         lblFiles.setPreferredSize(new Dimension(lblFiles.getPreferredSize().width, 23));
@@ -94,6 +94,7 @@ public class ReceiveFileDialog extends JDialog {
         setLocationRelativeTo(parent);
     }
 
+    // Actualiza la lista de archivos disponibles en el diálogo
     private void updateFileList() {
         Vector<String> files = new Vector<>();
         for (Map.Entry<String, String> entry : receivedFileNames.entrySet()) {
@@ -107,19 +108,18 @@ public class ReceiveFileDialog extends JDialog {
 
         // Imprimir contenido Base64 del primer archivo de la lista como ejemplo
         if (!files.isEmpty()) {
-            String selectedFileName = files.get(0); 
+            String selectedFileName = files.get(0);
             String key = userName + "@" + currentUserName + ":" + selectedFileName;
             byte[] fileContent = receivedFiles.get(key);
             if (fileContent != null && fileContent.length > 0) {
-                String encodedFile = Base64.getEncoder().encodeToString(fileContent);
-                System.out.println("RECEIVED: Contenido del archivo listo! ");
+                System.out.println("RECEIVE: Contenido del archivo listo! ");
             } else {
-                System.out.println("RECEIVED: No se recibio el archivo: " + key);
+                System.out.println("RECEIVE: No se recibio el archivo: " + key);
             }
         }
     }
 
-
+    // Guarda el archivo seleccionado por el usuario
     private void saveFile() {
         String selectedFile = fileList.getSelectedValue();
         if (selectedFile != null) {
@@ -131,11 +131,6 @@ public class ReceiveFileDialog extends JDialog {
                 String key = userName + "@" + currentUserName + ":" + selectedFile;
                 byte[] fileContent = receivedFiles.get(key);
                 if (fileContent != null && fileContent.length > 0) {
-                    // Imprimir contenido del archivo en Base64
-                    String encodedFile = Base64.getEncoder().encodeToString(fileContent);
-                    System.out.println("a: " + encodedFile);
-                    
-                    // Proceder a guardar el archivo
                     new Thread(() -> {
                         try (FileOutputStream fos = new FileOutputStream(saveFile)) {
                             fos.write(fileContent);
@@ -149,7 +144,7 @@ public class ReceiveFileDialog extends JDialog {
                 }
             }
         } else {
-            JOptionPane.showMessageDialog(this, "RECEIVE: Seleccione un archivo de la lista para guardar.");
+            JOptionPane.showMessageDialog(this, "Seleccione un archivo de la lista para guardar.");
         }
     }
 }
